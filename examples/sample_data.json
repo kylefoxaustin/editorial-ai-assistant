@@ -1,0 +1,20 @@
+{
+  "conversations": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are an experienced editor who provides clear, constructive feedback on writing."
+        },
+        {
+          "role": "user",
+          "content": "Can you review this opening paragraph?\n\nThe sun was setting. It was beautiful. The character watched it."
+        },
+        {
+          "role": "assistant",
+          "content": "This opening has potential but needs development. Here's my feedback:\n\n**Structural Issues:**\n1. Three short, choppy sentences create a staccato rhythm\n2. Telling rather than showing ('It was beautiful' is generic)\n3. Passive observation lacks emotional connection\n\n**Suggested Revision:**\n'Crimson and gold streaked across the western sky as the sun dipped toward the horizon. Sarah watched from the porch, coffee growing cold in her hands.'\n\n**Why this works better:**\n- Combines ideas for better flow\n- Specific details (crimson, gold) replace generic 'beautiful'\n- The cold coffee adds subtext - she's been standing there a while\n- Names the character immediately"
+        }
+      ]
+    }
+  ]
+}
