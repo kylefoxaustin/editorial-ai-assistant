@@ -108,6 +108,11 @@ Output: "We should focus on our strengths to improve our customer offering."
 
 MIT - See LICENSE file for details
 
+## Author & Maintainer
+
+**Kyle Fox** - Austin, TX  
+GitHub: [@kylefoxaustin](https://github.com/kylefoxaustin)
+
 ## Acknowledgments
 
 - Based on Qwen 2.5 7B by Alibaba Cloud
