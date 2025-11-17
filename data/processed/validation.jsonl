@@ -1,0 +1,5 @@
+{"instruction": "Improve style", "input": "The deadline for submitting applications is March 15th, 2024.", "output": "Application deadline: March 15, 2024."}
+{"instruction": "Make concise", "input": "Research has shown that regular exercise can help to reduce stress levels.", "output": "Research shows regular exercise reduces stress."}
+{"instruction": "Make concise", "input": "The team's performance this quarter has been nothing short of exceptional.", "output": "The team performed exceptionally this quarter."}
+{"instruction": "Remove business jargon", "input": "We will circle back on this issue at a later date.", "output": "We will revisit this issue later."}
+{"instruction": "Remove redundancy", "input": "The project is behind schedule due to unforeseen circumstances beyond our control.", "output": "The project is behind schedule due to unforeseen circumstances."}

@@ -1,50 +1,42 @@
 # Virtual environments
-.venv/
+editorial_env/
 venv/
-env/
-ENV/
-*.pyc
-__pycache__/
+.env/
 
-# Training data (keep private)
-data/raw/
-data/processed/
-data/train/
-data/validation/
-*.jsonl
-*.json
-!examples/*.json
+# Model directories (too large for GitHub)
+editorial-ai-model*/
+merged-editorial-model/
+editorial-gpt2*/
+editorial-ai-5090*/
+checkpoint*/
 
-# Models (too large for git)
-models/
-*.pt
-*.pth
+# Model files
 *.safetensors
 *.bin
+*.pt
 *.gguf
+*.model
+*.pth
 
-# Logs and outputs
-logs/
-outputs/
-wandb/
-*.log
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Ollama files
+*.Modelfile
+Modelfile
 
-# OS
+# Large data files
+*.pkl
+*.h5
+*.zip
+*.tar.gz
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
-
-# Secrets
-.env
-secrets.txt
-api_keys.txt
+# IDE files
+.vscode/
+.idea/
