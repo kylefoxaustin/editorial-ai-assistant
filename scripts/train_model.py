@@ -13,7 +13,8 @@ from transformers import (
     AutoTokenizer,
     TrainingArguments,
     Trainer,
-    DataCollatorForSeq2Seq
+    DataCollatorForSeq2Seq,
+    BitsAndBytesConfig
 )
 from peft import (
     LoraConfig,
@@ -35,8 +36,6 @@ def setup_model_and_tokenizer(model_name="Qwen/Qwen2.5-7B-Instruct", load_in_8bi
     
     # Model with quantization for memory efficiency
     if load_in_8bit:
-        from transformers import BitsAndBytesConfig
-        
         bnb_config = BitsAndBytesConfig(
             load_in_8bit=True,
             bnb_8bit_compute_dtype=torch.float16
@@ -64,7 +63,7 @@ def setup_lora(model, r=16, lora_alpha=32, lora_dropout=0.1):
     """Configure LoRA for efficient fine-tuning"""
     
     lora_config = LoraConfig(
-        r=r,  # Rank
+        r=r,
         lora_alpha=lora_alpha,
         target_modules=[
             "q_proj",
@@ -88,7 +87,6 @@ def setup_lora(model, r=16, lora_alpha=32, lora_dropout=0.1):
 def preprocess_function(examples, tokenizer, max_length=512):
     """Format examples for training"""
     
-    # Create prompt template
     prompts = []
     for instruction, input_text, output in zip(
         examples["instruction"], 
@@ -105,7 +103,6 @@ Text: {input_text}<|im_end|>
 {output}<|im_end|>"""
         prompts.append(prompt)
     
-    # Tokenize
     model_inputs = tokenizer(
         prompts,
         max_length=max_length,
@@ -114,7 +111,6 @@ Text: {input_text}<|im_end|>
         return_tensors="pt"
     )
     
-    # Set labels (same as input_ids for causal LM)
     model_inputs["labels"] = model_inputs["input_ids"].clone()
     
     return model_inputs
@@ -145,11 +141,11 @@ def train_model(
         logging_first_step=True,
         save_steps=100,
         eval_steps=100,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         save_strategy="steps",
         save_total_limit=3,
         load_best_model_at_end=True,
-        report_to="none",  # Change to "wandb" if you want logging
+        report_to="none",
         remove_unused_columns=False,
         gradient_checkpointing=True,
     )
@@ -231,9 +227,6 @@ def main():
     
     print("✓ Training complete!")
     print(f"✓ Model saved to {args.output}")
-    print("\nNext steps:")
-    print("1. Test the model with test_model.py")
-    print("2. Export to Ollama with export_ollama.py")
 
 if __name__ == "__main__":
     main()

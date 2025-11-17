@@ -115,7 +115,7 @@ SYSTEM """{system_prompt}"""
 LICENSE """
 Custom Editorial AI Model
 Fine-tuned for professional editorial assistance.
-Based on Qwen 2.5 7B model.
+"Based on Qwen 2.5 7B model."
 """
 """
     
