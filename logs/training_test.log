@@ -1,0 +1,4 @@
+usage: train_model.py [-h] [--model MODEL] [--data DATA] [--output OUTPUT]
+                      [--epochs EPOCHS] [--batch-size BATCH_SIZE] [--lr LR]
+                      [--use-8bit]
+train_model.py: error: unrecognized arguments: --max-steps 10
