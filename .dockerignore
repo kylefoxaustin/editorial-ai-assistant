@@ -1,0 +1,23 @@
+# Virtual environments
+editorial_env/
+venv/
+*.pyc
+__pycache__/
+
+# Model files (too large for Docker image)
+*.safetensors
+*.bin
+*.pt
+*.gguf
+editorial-ai-model*/
+merged-editorial-model/
+editorial-gpt2*/
+checkpoint*/
+
+# Git
+.git/
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
