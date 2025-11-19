@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  editorial-ai:
+    build: .
+    image: editorial-ai-assistant:latest
+    container_name: editorial-ai
+    volumes:
+      # Mount models directory to persist trained models
+      - ./models:/app/models
+      # Mount data for custom datasets
+      - ./data:/app/data
+      # For GPU support (optional)
+      - /usr/lib/x86_64-linux-gnu/libcuda.so:/usr/lib/x86_64-linux-gnu/libcuda.so:ro
+    # Uncomment for GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    stdin_open: true
+    tty: true
+    ports:
+      - "11434:11434"  # Ollama API port
