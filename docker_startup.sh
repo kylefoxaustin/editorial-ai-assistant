@@ -178,32 +178,94 @@ if [ $# -eq 0 ]; then
                 3)
                     echo ""
                     echo "Document Processing Options:"
+                    echo "  0) Show files currently in data/to_process/"
                     echo "  1) Email files (.mbox format)"
-                    echo "  2) PDF documents"
-                    echo "  3) Word documents (.docx)"
-                    echo "  4) PowerPoint presentations (.pptx)"
-                    echo "  5) Excel spreadsheets (.xlsx)"
-                    echo "  6) Plain text files (.txt)"
-                    echo "  7) Process ALL file types"
+                    echo "  2) Email archives (.pst format - requires conversion)"
+                    echo "  3) PDF documents"
+                    echo "  4) Word documents (.docx)"
+                    echo "  5) PowerPoint presentations (.pptx)"
+                    echo "  6) Excel spreadsheets (.xlsx)"
+                    echo "  7) Plain text files (.txt)"
+                    echo "  8) Process ALL file types"
                     echo ""
-                    echo "Place your files in: data/to_process/"
-                    ls -la data/to_process/ 2>/dev/null | head -10
-                    echo ""
-                    read -p "Select option [1-7]: " doc_choice
+                    read -p "Select option [0-8]: " doc_choice
                     
+                    # Handle option 0 - just show files
+                    if [ "$doc_choice" == "0" ]; then
+                        echo ""
+                        echo "Files in data/to_process/:"
+                        echo "========================================="
+                        if [ -d "data/to_process" ]; then
+                            ls -la data/to_process/ | tail -n +2
+                            echo "========================================="
+                            echo "Total: $(ls -1 data/to_process/ | wc -l) files"
+                        else
+                            echo "Directory does not exist yet"
+                        fi
+                        echo ""
+                        read -p "Press Enter to return to menu..."
+                        exec $0
+                    fi
+                    
+                    # For all other options, show files and confirm
                     case $doc_choice in
-                        1) TYPE="email" ;;
-                        2) TYPE="pdf" ;;
-                        3) TYPE="docx" ;;
-                        4) TYPE="pptx" ;;
-                        5) TYPE="xlsx" ;;
-                        6) TYPE="txt" ;;
-                        7) TYPE="all" ;;
-                        *) TYPE="all" ;;
+                        1) TYPE="email"; DESC="Email (.mbox)" ;;
+                        2) TYPE="pst"; DESC="Email archives (.pst)" ;;
+                        3) TYPE="pdf"; DESC="PDF documents" ;;
+                        4) TYPE="docx"; DESC="Word documents" ;;
+                        5) TYPE="pptx"; DESC="PowerPoint presentations" ;;
+                        6) TYPE="xlsx"; DESC="Excel spreadsheets" ;;
+                        7) TYPE="txt"; DESC="Plain text files" ;;
+                        8) TYPE="all"; DESC="ALL file types" ;;
+                        *) TYPE="all"; DESC="ALL file types" ;;
                     esac
                     
-                    echo "Processing $TYPE files..."
-                    python3 scripts/prepare_universal_data.py --type $TYPE
+                    echo ""
+                    echo "Processing: $DESC"
+                    echo ""
+                    echo "Current files in data/to_process/:"
+                    echo "========================================="
+                    if [ -d "data/to_process" ]; then
+                        if [ "$TYPE" == "all" ]; then
+                            ls -la data/to_process/ | tail -n +2
+                        elif [ "$TYPE" == "email" ]; then
+                            ls -la data/to_process/*.mbox 2>/dev/null || echo "No .mbox files found"
+                        elif [ "$TYPE" == "pst" ]; then
+                            ls -la data/to_process/*.pst 2>/dev/null || echo "No .pst files found"
+                        else
+                            ls -la data/to_process/*.$TYPE 2>/dev/null || echo "No .$TYPE files found"
+                        fi
+                    else
+                        echo "Directory does not exist yet - will be created"
+                    fi
+                    echo "========================================="
+                    echo ""
+                    echo "Ready to proceed? You can add files to the folder now if you missed anything."
+                    read -p "Press Enter to process, or Ctrl+C to cancel..."
+                    
+                    # Handle PST files specially
+                    if [ "$TYPE" == "pst" ]; then
+                        echo ""
+                        echo "PST files need to be converted first..."
+                        echo "Installing readpst if needed..."
+                        apt-get update && apt-get install -y pst-utils
+                        
+                        echo "Converting PST files to mbox format..."
+                        mkdir -p data/to_process/converted_pst
+                        for pst in data/to_process/*.pst; do
+                            if [ -f "$pst" ]; then
+                                filename=$(basename "$pst" .pst)
+                                echo "Converting $filename.pst..."
+                                readpst -r -o data/to_process/converted_pst/ "$pst"
+                            fi
+                        done
+                        
+                        echo "Processing converted emails..."
+                        python3 scripts/prepare_universal_data.py --input-dir data/to_process/converted_pst/ --type email
+                    else
+                        echo "Processing $TYPE files..."
+                        python3 scripts/prepare_universal_data.py --type $TYPE
+                    fi
                     ;;
                 4)
                     python3 scripts/prepare_data_enhanced.py --show-examples
