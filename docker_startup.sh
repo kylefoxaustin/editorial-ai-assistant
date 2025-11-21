@@ -48,31 +48,21 @@ if [ $# -eq 0 ]; then
 
             if [ "$CUDA_AVAILABLE" == "false" ]; then
                 echo "  ⚠ CPU detected - recommend options 1 or 2"
-            elif [ "$GPU_MEM" -lt 8000 ]; then
-                echo "  ⚠ GPU has ${GPU_MEM}MB - recommend options 1-2"
-            elif [ "$GPU_MEM" -lt 12000 ]; then
-                echo "  ✓ GPU has ${GPU_MEM}MB - options 1-4 will work"
-            elif [ "$GPU_MEM" -lt 24000 ]; then
-                echo "  ✓ GPU has ${GPU_MEM}MB - options 1-5 will work"
-            else
-                echo "  ✓ GPU has ${GPU_MEM}MB - all options available!"
             fi
 
             echo ""
             read -p "Select model [1-6]: " model_choice
 
             case $model_choice in
-                1) MODEL="gpt2"; VRAM_NEEDED="2GB" ;;
-                2) MODEL="gpt2-medium"; VRAM_NEEDED="4GB" ;;
-                3) MODEL="gpt2-large"; VRAM_NEEDED="6GB" ;;
-                4) MODEL="gpt2-xl"; VRAM_NEEDED="8GB" ;;
-                5) MODEL="microsoft/phi-2"; VRAM_NEEDED="12GB" ;;
-                6) MODEL="Qwen/Qwen2.5-7B-Instruct"; VRAM_NEEDED="24GB" ;;
+                1) MODEL="gpt2"; SCRIPT="train_simple.py" ;;
+                2) MODEL="gpt2-medium"; SCRIPT="train_simple.py" ;;
+                3) MODEL="gpt2-large"; SCRIPT="train_simple.py" ;;
+                4) MODEL="gpt2-xl"; SCRIPT="train_simple.py" ;;
+                5) MODEL="microsoft/phi-2"; SCRIPT="train_model.py" ;;
+                6) MODEL="Qwen/Qwen2.5-7B-Instruct"; SCRIPT="train_model.py" ;;
                 *) echo "Invalid choice"; exit 1 ;;
             esac
 
-            echo ""
-            echo "Selected: $MODEL (requires ~$VRAM_NEEDED)"
             echo ""
             read -p "Number of training epochs (1-5, default 3): " epochs
             epochs=${epochs:-3}
@@ -87,70 +77,78 @@ if [ $# -eq 0 ]; then
             echo "  Batch size: $batch_size"
             echo ""
 
-            # Use 8-bit quantization for large models on GPU
-            if [ "$CUDA_AVAILABLE" == "true" ] && [ "$model_choice" -ge 5 ]; then
-                python3 scripts/train_model.py \
-                    --model "$MODEL" \
-                    --epochs $epochs \
-                    --batch-size $batch_size \
-                    --use-8bit
-            else
-                python3 scripts/train_model.py \
+            # Use appropriate script based on model
+            if [ "$SCRIPT" == "train_simple.py" ]; then
+                # GPT-2 models use the simple script
+                python3 scripts/train_simple.py \
                     --model "$MODEL" \
                     --epochs $epochs \
                     --batch-size $batch_size
+            else
+                # Larger models use the full script with LoRA
+                if [ "$CUDA_AVAILABLE" == "true" ]; then
+                    python3 scripts/train_model.py \
+                        --model "$MODEL" \
+                        --epochs $epochs \
+                        --batch-size $batch_size \
+                        --use-8bit
+                else
+                    python3 scripts/train_model.py \
+                        --model "$MODEL" \
+                        --epochs $epochs \
+                        --batch-size $batch_size
+                fi
             fi
             ;;
 
         2)
             echo ""
-            echo "Testing model..."
+            echo "Available models:"
+            if [ -d "./models/editorial-ai-trained" ]; then
+                echo "  1) editorial-ai-trained (GPT-2 fine-tuned)"
+            fi
             if [ -d "./models/editorial-ai-model" ]; then
-                python3 scripts/test_model.py --model ./models/editorial-ai-model
+                echo "  2) editorial-ai-model (base model)"
+            fi
+            echo "  3) Enter custom model path"
+            echo ""
+            read -p "Select model [1-3]: " test_choice
+            
+            case $test_choice in
+                1) MODEL_PATH="./models/editorial-ai-trained" ;;
+                2) MODEL_PATH="./models/editorial-ai-model" ;;
+                3) 
+                    read -p "Enter model path: " MODEL_PATH ;;
+                *) MODEL_PATH="./models/editorial-ai-trained" ;;
+            esac
+            
+            # Use the simple test script for GPT-2 models
+            if [[ "$MODEL_PATH" == *"gpt2"* ]] || [[ "$MODEL_PATH" == *"editorial-ai-trained"* ]]; then
+                python3 scripts/test_editorial.py
             else
-                echo "No trained model found. Train a model first!"
+                python3 scripts/test_model.py --model "$MODEL_PATH"
             fi
             ;;
 
         3)
             echo ""
             echo "Data Preparation Options:"
+            echo "  1) Use existing sample data"
+            echo "  2) Process new CSV file"
+            echo "  3) Show data format examples"
             echo ""
-            echo "  1) Process CSV file (columns: original, edited, type, explanation)"
-            echo "  2) Process Excel file (.xlsx with same columns as CSV)"
-            echo "  3) Process Word document (.docx with alternating paragraphs)"
-            echo "  4) Process JSONL file (JSON Lines format)"
-            echo "  5) Show data format examples"
-            echo ""
-            read -p "Select option [1-5]: " data_choice
-
+            read -p "Select option [1-3]: " data_choice
+            
             case $data_choice in
                 1)
-                    echo "Place your CSV file in data/raw/ directory"
-                    read -p "Enter filename (or press Enter for sample_editorial_data.csv): " filename
-                    filename=${filename:-sample_editorial_data.csv}
-                    python3 scripts/prepare_data_enhanced.py --input "data/raw/$filename" --input-type csv
+                    python3 scripts/prepare_data.py
                     ;;
                 2)
-                    echo "Place your Excel file in data/raw/ directory"
-                    read -p "Enter filename: " filename
-                    python3 scripts/prepare_data_enhanced.py --input "data/raw/$filename" --input-type xlsx
+                    read -p "Enter CSV filename in data/raw/: " filename
+                    python3 scripts/prepare_data_enhanced.py --input "data/raw/$filename"
                     ;;
                 3)
-                    echo "Place your Word document in data/raw/ directory"
-                    read -p "Enter filename: " filename
-                    python3 scripts/prepare_data_enhanced.py --input "data/raw/$filename" --input-type docx
-                    ;;
-                4)
-                    echo "Place your JSONL file in data/raw/ directory"
-                    read -p "Enter filename: " filename
-                    python3 scripts/prepare_data_enhanced.py --input "data/raw/$filename" --input-type jsonl
-                    ;;
-                5)
                     python3 scripts/prepare_data_enhanced.py --show-examples
-                    ;;
-                *)
-                    echo "Invalid choice"
                     ;;
             esac
             ;;
