@@ -40,3 +40,7 @@ Thumbs.db
 # IDE files
 .vscode/
 .idea/
+data/processed/personal_style*.jsonl
+data/to_process/
+models/
+data/processed/train_old.jsonl
