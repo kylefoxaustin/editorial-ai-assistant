@@ -71,10 +71,30 @@ if [ $# -eq 0 ]; then
             batch_size=${batch_size:-2}
 
             echo ""
+            echo "Select training data:"
+            echo "  1) Standard editorial examples (default)"
+            echo "  2) Personal style data (if processed)"
+            echo ""
+            read -p "Select data source [1-2]: " data_choice
+            
+            if [ "$data_choice" == "2" ]; then
+                if [ -f "data/processed/personal_style_train.jsonl" ]; then
+                    DATA_FILE="data/processed/personal_style_train.jsonl"
+                    echo "Using personal style training data"
+                else
+                    echo "Personal data not found. Using standard data."
+                    DATA_FILE="data/processed/train.jsonl"
+                fi
+            else
+                DATA_FILE="data/processed/train.jsonl"
+            fi
+
+            echo ""
             echo "Starting training with:"
             echo "  Model: $MODEL"
             echo "  Epochs: $epochs"
             echo "  Batch size: $batch_size"
+            echo "  Data: $DATA_FILE"
             echo ""
 
             # Use appropriate script based on model
@@ -110,14 +130,18 @@ if [ $# -eq 0 ]; then
             if [ -d "./models/editorial-ai-model" ]; then
                 echo "  2) editorial-ai-model (base model)"
             fi
-            echo "  3) Enter custom model path"
+            if [ -d "./models/personal-style-model" ]; then
+                echo "  3) personal-style-model (your personalized model)"
+            fi
+            echo "  4) Enter custom model path"
             echo ""
-            read -p "Select model [1-3]: " test_choice
+            read -p "Select model [1-4]: " test_choice
             
             case $test_choice in
                 1) MODEL_PATH="./models/editorial-ai-trained" ;;
                 2) MODEL_PATH="./models/editorial-ai-model" ;;
-                3) 
+                3) MODEL_PATH="./models/personal-style-model" ;;
+                4) 
                     read -p "Enter model path: " MODEL_PATH ;;
                 *) MODEL_PATH="./models/editorial-ai-trained" ;;
             esac
@@ -133,22 +157,59 @@ if [ $# -eq 0 ]; then
         3)
             echo ""
             echo "Data Preparation Options:"
-            echo "  1) Use existing sample data"
-            echo "  2) Process new CSV file"
-            echo "  3) Show data format examples"
+            echo "  1) Use existing sample editorial data"
+            echo "  2) Process new CSV file with editorial examples"
+            echo "  3) Process personal documents (emails, PDFs, etc.)"
+            echo "  4) Show data format examples"
             echo ""
-            read -p "Select option [1-3]: " data_choice
+            read -p "Select option [1-4]: " data_choice
             
             case $data_choice in
                 1)
                     python3 scripts/prepare_data.py
+                    echo "✓ Sample data ready for training"
                     ;;
                 2)
-                    read -p "Enter CSV filename in data/raw/: " filename
+                    echo "Place your CSV file in data/raw/"
+                    echo "Format: columns should be 'original', 'edited', 'type', 'explanation'"
+                    read -p "Enter CSV filename: " filename
                     python3 scripts/prepare_data_enhanced.py --input "data/raw/$filename"
                     ;;
                 3)
+                    echo ""
+                    echo "Document Processing Options:"
+                    echo "  1) Email files (.mbox format)"
+                    echo "  2) PDF documents"
+                    echo "  3) Word documents (.docx)"
+                    echo "  4) PowerPoint presentations (.pptx)"
+                    echo "  5) Excel spreadsheets (.xlsx)"
+                    echo "  6) Plain text files (.txt)"
+                    echo "  7) Process ALL file types"
+                    echo ""
+                    echo "Place your files in: data/to_process/"
+                    ls -la data/to_process/ 2>/dev/null | head -10
+                    echo ""
+                    read -p "Select option [1-7]: " doc_choice
+                    
+                    case $doc_choice in
+                        1) TYPE="email" ;;
+                        2) TYPE="pdf" ;;
+                        3) TYPE="docx" ;;
+                        4) TYPE="pptx" ;;
+                        5) TYPE="xlsx" ;;
+                        6) TYPE="txt" ;;
+                        7) TYPE="all" ;;
+                        *) TYPE="all" ;;
+                    esac
+                    
+                    echo "Processing $TYPE files..."
+                    python3 scripts/prepare_universal_data.py --type $TYPE
+                    ;;
+                4)
                     python3 scripts/prepare_data_enhanced.py --show-examples
+                    ;;
+                *)
+                    echo "Invalid choice"
                     ;;
             esac
             ;;
