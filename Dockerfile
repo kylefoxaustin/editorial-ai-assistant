@@ -14,7 +14,7 @@ WORKDIR /app
 
 # Copy requirements and install Python packages
 COPY requirements-docker.txt .
-RUN pip3 install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip3 install --no-cache-dir -r requirements-docker.txt || \
     pip3 install --no-cache-dir \
     transformers \

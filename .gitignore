@@ -44,3 +44,23 @@ data/processed/personal_style*.jsonl
 data/to_process/
 models/
 data/processed/train_old.jsonl
+
+
+# Add these lines to .gitignore
+models/
+data/processed/personal_*
+data/processed/kyle_*
+data/processed/sender_*
+data/to_process/
+*.pth
+*.safetensors
+*.bin
+*.gguf
+*.mbox
+*.pst
+personal_style*.jsonl
+kyle_*.jsonl
+editorial_venv/
+venv/
+__pycache__/
+*.pyc
